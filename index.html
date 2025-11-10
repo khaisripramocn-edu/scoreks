@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ระบบเก็บคะแนน + พฤติกรรมนักเรียน (ไขศรี)</title>
+<link href="https://fonts.googleapis.com/css2?family=TH+Sarabun&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'TH Sarabun',sans-serif;margin:0;background:#fef2f2;color:#1e293b}
+  header{background:#b91c1c;color:white;padding:16px;text-align:center;font-size:22px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px}
+  header img{width:70px;height:70px;border-radius:50%;border:3px solid white}
+  nav{display:flex;justify-content:space-around;background:#e0e7ff;border-bottom:2px solid #1e40af;position:sticky;top:0;z-index:10}
+  nav button{flex:1;padding:12px;border:none;background:white;font-size:16px;cursor:pointer}
+  nav button.active{border-bottom:3px solid #1e40af;color:#1e40af;font-weight:700}
+  .container{padding:15px}
+  .card{background:white;padding:15px;border-radius:10px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  input,select{padding:10px;width:100%;border:1px solid #94a3b8;border-radius:8px;margin-top:8px;margin-bottom:10px}
+  button.primary{background:#1e40af;color:white;padding:10px 16px;border:none;border-radius:8px;font-size:16px;width:100%;margin-top:10px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{border:1px solid #cbd5e1;padding:8px;text-align:center;font-size:14px}
+  th{background:#1e40af;color:white}
+  .danger{background:#dc2626;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:12px}
+  #dashboard{display:flex;flex-wrap:wrap;gap:10px}
+  .dash-card{flex:1 1 200px;background:#b91c1c;color:white;padding:15px;border-radius:10px;text-align:center;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="School Logo" />
+  📊 ระบบเก็บคะแนน + พฤติกรรมนักเรียน (โรงเรียนไขศรี)
+</header>
+
+<nav>
+  <button data-view="dashboard" class="active">Dashboard</button>
+  <button data-view="score">คะแนน</button>
+  <button data-view="behavior">พฤติกรรม</button>
+  <button data-view="manage">จัดการ</button>
+</nav>
+
+<div class="container">
+
+<section id="view-dashboard">
+  <div class="card">
+    <h3>📈 Dashboard คะแนนรวม</h3>
+    <div id="dashboard"></div>
+    <button class="primary" onclick="exportExcel()">Export Excel</button>
+    <button class="primary" onclick="exportPDF()">Export PDF</button>
+  </div>
+</section>
+
+<section id="view-score" style="display:none">
+  <div class="card">
+    <h3>บันทึกคะแนน</h3>
+    <input id="searchStudent" placeholder="ค้นชื่อนักเรียน" oninput="refresh()" />
+    <select id="scoreStudent"></select>
+    <input id="scoreValue" type="number" placeholder="คะแนน เช่น 10" />
+    <input id="scoreDetail" placeholder="รายละเอียด เช่น แบบฝึกหัด" />
+    <button class="primary" onclick="addScore()">บันทึกคะแนน</button>
+  </div>
+
+  <div class="card">
+    <h3>📄 คะแนนแต่ละคน (เรียงแนวนอน)</h3>
+    <table>
+      <thead>
+        <tr id="scoreHeader"></tr>
+      </thead>
+      <tbody id="scoreRows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="view-behavior" style="display:none">
+  <div class="card">
+    <h3>บันทึกพฤติกรรม</h3>
+    <input id="searchBehavior" placeholder="ค้นชื่อนักเรียน" oninput="refresh()" />
+    <select id="behStudent"></select>
+    <select id="behType">
+      <option value="ดี">✅ พฤติกรรมดี</option>
+      <option value="ต้องปรับปรุง">⚠ ต้องปรับปรุง</option>
+    </select>
+    <input id="behDetail" placeholder="รายละเอียด" />
+    <button class="primary" onclick="addBehavior()">บันทึกพฤติกรรม</button>
+  </div>
+
+  <div class="card">
+    <h3>📄 พฤติกรรมทั้งหมด</h3>
+    <select id="filterBehavior" onchange="refresh()">
+      <option value="ทั้งหมด">ทั้งหมด</option>
+      <option value="ดี">พฤติกรรมดี</option>
+      <option value="ต้องปรับปรุง">ต้องปรับปรุง</option>
+    </select>
+    <table>
+      <thead><tr><th>ชื่อ</th><th>ประเภท</th><th>รายละเอียด</th><th></th></tr></thead>
+      <tbody id="behTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="view-manage" style="display:none">
+  <div class="card">
+    <h3>เพิ่มนักเรียน</h3>
+    <input id="stuName" placeholder="ชื่อ - สกุล" />
+    <button class="primary" onclick="addStudent()">เพิ่มนักเรียน</button>
+  </div>
+
+  <div class="card">
+    <h3>รายชื่อนักเรียน</h3>
+    <table>
+      <thead><tr><th>ชื่อ</th><th></th></tr></thead>
+      <tbody id="stuTable"></tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<script>
+const KEY="student_app_v3";
+let db=JSON.parse(localStorage.getItem(KEY)||JSON.stringify({students:["ด.ช. ไนท์","ด.ญ. เอริน"],scores:[],behaviors:[]}));
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+
+// ----------------- สลับหน้า -------------------
+document.querySelectorAll("nav button").forEach(b=>{b.onclick=()=>{
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+document.querySelectorAll("section").forEach(s=>s.style.display="none");
+document.querySelector('#view-'+b.dataset.view).style.display="block";
+refresh();}});
+
+// ----------------- นักเรียน -------------------
+function loadStudents(){
+const s1=document.querySelector('#scoreStudent');
+const s2=document.querySelector('#behStudent');
+s1.innerHTML=db.students.map(s=>`<option>${s}</option>`).join('');
+s2.innerHTML=db.students.map(s=>`<option>${s}</option>`).join('');
+document.querySelector('#stuTable').innerHTML=db.students.map(s=>`<tr><td>${s}</td><td><button class='danger' onclick="delStudent('${s}')">ลบ</button></td></tr>`).join('');
+}
+function addStudent(){const name=stuName.value;if(!name)return alert("กรอกชื่อนักเรียน");db.students.push(name);save();refresh();stuName.value="";}
+function delStudent(name){db.students=db.students.filter(s=>s!==name);db.scores=db.scores.filter(s=>s.name!==name);db.behaviors=db.behaviors.filter(s=>s.name!==name);save();refresh();}
+
+// ----------------- คะแนน -------------------
+function addScore(){db.scores.push({name:scoreStudent.value,value:Number(scoreValue.value||0),detail:scoreDetail.value});save();refresh();scoreValue.value="";scoreDetail.value="";}
+function delScore(i){db.scores.splice(i,1);save();refresh();}
+
+// ----------------- พฤติกรรม -------------------
+function addBehavior(){db.behaviors.push({name:behStudent.value,type:behType.value,detail:behDetail.value});save();refresh();behDetail.value="";}
+function delBeh(i){db.behaviors.splice(i,1);save();refresh();}
+
+// ----------------- Dashboard -------------------
+function renderDashboard(){
+const dash=document.querySelector('#dashboard');
+dash.innerHTML='';
+const totalScores=db.scores.reduce((a,b)=>a+b.value,0);
+const avgScore=db.scores.length?Math.round(totalScores/db.scores.length):0;
+const goodBeh=db.behaviors.filter(b=>b.type==='ดี').length;
+const needImprovement=db.behaviors.filter(b=>b.type==='ต้องปรับปรุง').length;
+dash.innerHTML=`<div class='dash-card'>รวมคะแนนทั้งหมด: ${totalScores}</div><div class='dash-card'>คะแนนเฉลี่ย: ${avgScore}</div><div class='dash-card'>พฤติกรรมดี: ${goodBeh}</div><div class='dash-card'>ต้องปรับปรุง: ${needImprovement}</div>`;
+}
+
+function exportExcel(){alert('ฟีเจอร์ Export Excel กำลังพัฒนา');}
+function exportPDF(){alert('ฟีเจอร์ Export PDF กำลังพัฒนา');}
+
+// ----------------- คะแนนแนวนอน -------------------
+function renderScores(){
+const search=searchStudent.value.toLowerCase();
+let students=db.students.filter(s=>s.toLowerCase().includes(search));
+scoreHeader.innerHTML='<th>รายละเอียด</th>'+students.map(s=>`<th>${s}</th>`).join('');
+let details=[...new Set(db.scores.map(s=>s.detail))];
+scoreRows.innerHTML='';
+details.forEach(d=>{
+let row=`<tr><td>${d}</td>`;
+students.forEach(s=>{
+let rec=db.scores.filter(x=>x.name===s && x.detail===d);
+let val=rec.length?rec.reduce((a,b)=>a+b.value,0):0;
+row+=`<td>${val}</td>`;
+});
+row+='</tr>';
+scoreRows.innerHTML+=row;
+});
+}
+
+function renderBeh(){
+const search=searchBehavior.value.toLowerCase();
+const filter=filterBehavior.value;
+behTable.innerHTML=db.behaviors.filter(b=>b.name.toLowerCase().includes(search) && (filter==='ทั้งหมด'||b.type===filter)).map((b,i)=>`<tr><td>${b.name}</td><td>${b.type}</td><td>${b.detail}</td><td><button class='danger' onclick="delBeh(${i})">ลบ</button></td></tr>`).join('');
+}
+
+function refresh(){
+loadStudents();
+renderScores();
+renderBeh();
+renderDashboard();
+}
+
+refresh();
+</script>
+
+</body>
+</html>
